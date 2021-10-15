@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <form name="getLink">
+      <label for="ytLink">Paste Link Here</label>
+      <br />
+      <input name="ytLink" id="link" />
+      <br />
+      <label for="songName">Song Name</label>
+      <input name="songName" id="songName" />
+      <button type="submit">Submit</button>
+    </form>
+    <script>
+      let form = document.getElementsByName("getLink")[0];
+      form.onsubmit = (e) => {
+        let link = document.getElementById("link").value;
+        let songName = document.getElementById("songName").value;
+        fetch(
+          `http://localhost:3000/download?link=${link}&songName=${songName}`
+        ).then(document.write("downloading"));
+        // window.location.href = `http://localhost:3000/download?link=${link}&songName=${songName}`;
+      };
+    </script>
+  </body>
+</html>
