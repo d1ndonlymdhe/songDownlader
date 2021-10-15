@@ -7,6 +7,7 @@ const songName = "Bussiness";
 const cmd = require("node-cmd");
 const ffmpeg = require("ffmpeg");
 const ytdl = require("ytdl-core");
+const { stderr } = require("process");
 const videoID = "nCg3ufihKyU";
 const writeStream = fs.createWriteStream(`${songName}.mp3`);
 
@@ -54,7 +55,7 @@ stream.on("progress", (length, current, total) => {
         // cmd.run(`ffmpeg -i ${songName}.mp3 -y ${songName}.m4a`, () => {
         //   hello();
         // });
-        hello();
+        newFunc(cutSections, 0, vidLength, 0);
       });
     console.log("done");
   }
@@ -119,4 +120,39 @@ function hello() {
       console.log(stderr);
     }
   );
+}
+
+function newFunc(cutSections, lastCut, vidLength, depth) {
+  const temp = `temp${depth}.mp3`;
+  if (depth < cutSections.length) {
+    const duration = cutSections[depth].startAt - lastCut;
+    cmd.run(
+      `ffmpeg -i ${songName}.mp3 -ss ${lastCut} -t ${duration} ${temp}`,
+      (err, data, stderr) => {
+        console.log(stderr);
+
+        fs.appendFile("temps.txt", `file ${temp}`);
+        lastCut = cutSections[depth].endAt;
+        depth++;
+        newFunc(cutSections, lastCut, vidLength, depth);
+      }
+    );
+  } else {
+    const duration = vidLength - lastCut;
+    cmd.run(
+      `ffmpeg -i ${songName}.mp3 -ss ${lastCut} -t ${duration} ${temp}`,
+      (err, data, stderr) => {
+        console.log(stderr);
+        fs.appendFile("temps.txt", `file ${temp}`);
+        cmd.run(
+          `ffmpeg -f concat -i temps.txt -c copy -y ${songName}.mp3`,
+          (err, data, stderr) => {
+            console.log(err);
+            // console.log(data);
+            console.log(stderr);
+          }
+        );
+      }
+    );
+  }
 }
