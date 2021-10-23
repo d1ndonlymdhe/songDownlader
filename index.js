@@ -7,9 +7,6 @@ const fs = require("fs");
 const cmd = require("node-cmd");
 const ytdl = require("ytdl-core");
 
-let temps = [];
-let cutSections = [];
-
 const express = require("express");
 const app = express();
 
@@ -18,13 +15,15 @@ app.get("/", (req, res) => {
 });
 app.get("/download", (req, res) => {
   const { link, songName } = req.query;
+  let temps = [];
+  let cutSections = [];
   console.log(link, songName);
   const videoID = youtube_parser(link);
-  download(videoID, songName);
-  res.send("downloading");
+  download(res, req, videoID, songName);
 });
 app.listen(3000);
-function download(videoID, songName) {
+
+function download(res, req, videoID, songName) {
   const writeStream = fs.createWriteStream(`${songName}.mp3`);
   let stream = ytdl(`https://youtube.com/watch?v=${videoID}`, {
     filter: "audioonly",
@@ -65,12 +64,12 @@ function download(videoID, songName) {
           fs.writeFile("temps.txt", "", () => {
             console.log("file created");
           });
-          newFunc(cutSections, 0, vidLength, 0);
+          newFunc(res, req, cutSections, 0, vidLength, 0);
         });
       console.log("done");
     }
   });
-  function newFunc(cutSections, lastCut, vidLength, depth) {
+  function newFunc(res, req, cutSections, lastCut, vidLength, depth) {
     console.log("depth = ", depth);
     const temp = `temp${depth}.mp3`;
     if (depth < cutSections.length) {
@@ -87,17 +86,17 @@ function download(videoID, songName) {
           console.log(stderr);
           lastCut = cutSections[depth].endAt;
           depth++;
-          newFunc(cutSections, lastCut, vidLength, depth);
+          newFunc(res, req, cutSections, lastCut, vidLength, depth);
         });
 
         fs.appendFile("temps.txt", `file ${temp} \n`, () => {
-          temps.push(temp);
+          // temps.push(temp);
           console.log("appended");
         });
       } else {
         lastCut = cutSections[depth].endAt;
         depth++;
-        newFunc(cutSections, lastCut, vidLength, depth);
+        newFunc(res, req, cutSections, lastCut, vidLength, depth);
       }
     } else {
       const duration = vidLength - lastCut;
@@ -113,7 +112,7 @@ function download(videoID, songName) {
           console.log(stderr);
           fs.appendFile("temps.txt", `file ${temp} \n`, () => {
             console.log("appended");
-            temps.push(temp);
+            // temps.push(temp);
           });
           cmd.run(
             `ffmpeg -f concat -i temps.txt -c copy -y "${songName}.mp3"`,
@@ -121,14 +120,15 @@ function download(videoID, songName) {
               console.log(err);
               console.log(data);
               console.log(stderr);
-              temps.forEach((temp) => {
-                fs.unlink(temp, () => {
-                  console.log("deleted ", temp);
-                });
-              });
+              // temps.forEach((temp) => {
+              //   fs.unlink(temp, () => {
+              //     console.log("deleted ", temp);
+              //   });
+              // });
               fs.unlink("temps.txt", () => {
                 console.log("deleted txt");
               });
+              forDownload(res, req, songName);
             }
           );
         });
@@ -141,19 +141,27 @@ function download(videoID, songName) {
             console.log(err);
             console.log(data);
             console.log(stderr);
-            temps.forEach((temp) => {
-              fs.unlink(temp, () => {
-                console.log("deleted ", temp);
-              });
-            });
+            // temps.forEach((temp) => {
+            //   fs.unlink(temp, () => {
+            //     console.log("deleted ", temp);
+            //   });
+            // });
             fs.unlink("temps.txt", () => {
               console.log("deleted txt");
             });
+            forDownload(res, req, songName);
           }
         );
       }
     }
   }
+}
+
+function forDownload(res, req, songName) {
+  const file = `${__dirname}/${songName}.mp3`;
+  res.setHeader("Content-disposition", `attachment; filename=${songName}.mp3`);
+  res.setHeader("Content-type", "audio/mpeg");
+  res.download(file);
 }
 
 function youtube_parser(url) {

@@ -7,25 +7,25 @@
     <title>Document</title>
   </head>
   <body>
-    <form name="getLink">
-      <label for="ytLink">Paste Link Here</label>
+    <form name="getLink" action="/download">
+      <label for="link">Paste Link Here</label>
       <br />
-      <input name="ytLink" id="link" />
+      <input name="link" id="link" />
       <br />
       <label for="songName">Song Name</label>
       <input name="songName" id="songName" />
       <button type="submit">Submit</button>
     </form>
     <script>
-      let form = document.getElementsByName("getLink")[0];
-      form.onsubmit = (e) => {
-        let link = document.getElementById("link").value;
-        let songName = document.getElementById("songName").value;
-        fetch(
-          `http://localhost:3000/download?link=${link}&songName=${songName}`
-        ).then(document.write("downloading"));
-        // window.location.href = `http://localhost:3000/download?link=${link}&songName=${songName}`;
-      };
+      // let form = document.getElementsByName("getLink")[0];
+      // form.onsubmit = (e) => {
+      //   let link = document.getElementById("link").value;
+      //   let songName = document.getElementById("songName").value;
+      //   fetch(
+      //     `http://localhost:3000/download?link=${link}&songName=${songName}`
+      //   ).then(document.write("downloading"));
+      //   // window.location.href = `http://localhost:3000/download?link=${link}&songName=${songName}`;
+      // };
     </script>
   </body>
 </html>
