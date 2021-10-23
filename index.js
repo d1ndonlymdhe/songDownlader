@@ -164,7 +164,7 @@ function forDownload(res, req, songName) {
   res.download(file);
   setTimeout(() => {
     fs.unlink(file, () => console.log(`${file} deleted`));
-  }, 5000);
+  }, 300000);
 }
 
 function youtube_parser(url) {
