@@ -9,7 +9,7 @@ const ytdl = require("ytdl-core");
 
 const express = require("express");
 const app = express();
-
+const port = process.env.PORT || 3000;
 app.get("/", (req, res) => {
   res.sendFile(__dirname + "/public/index.html");
 });
@@ -21,7 +21,7 @@ app.get("/download", (req, res) => {
   const videoID = youtube_parser(link);
   download(res, req, videoID, songName);
 });
-app.listen(3000);
+app.listen(port);
 
 function download(res, req, videoID, songName) {
   const writeStream = fs.createWriteStream(`${songName}.mp3`);
