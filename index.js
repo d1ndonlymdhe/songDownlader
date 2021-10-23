@@ -64,12 +64,12 @@ function download(res, req, videoID, songName) {
           fs.writeFile("temps.txt", "", () => {
             console.log("file created");
           });
-          newFunc(res, req, cutSections, 0, vidLength, 0);
+          newFunc(res, req, cutSections, 0, vidLength, 0, []);
         });
       console.log("done");
     }
   });
-  function newFunc(res, req, cutSections, lastCut, vidLength, depth) {
+  function newFunc(res, req, cutSections, lastCut, vidLength, depth, temps) {
     console.log("depth = ", depth);
     const temp = `temp${depth}.mp3`;
     if (depth < cutSections.length) {
@@ -86,17 +86,17 @@ function download(res, req, videoID, songName) {
           console.log(stderr);
           lastCut = cutSections[depth].endAt;
           depth++;
-          newFunc(res, req, cutSections, lastCut, vidLength, depth);
+          newFunc(res, req, cutSections, lastCut, vidLength, depth, temps);
         });
 
         fs.appendFile("temps.txt", `file ${temp} \n`, () => {
-          // temps.push(temp);
+          temps.push(temp);
           console.log("appended");
         });
       } else {
         lastCut = cutSections[depth].endAt;
         depth++;
-        newFunc(res, req, cutSections, lastCut, vidLength, depth);
+        newFunc(res, req, cutSections, lastCut, vidLength, depth, temps);
       }
     } else {
       const duration = vidLength - lastCut;
@@ -112,7 +112,7 @@ function download(res, req, videoID, songName) {
           console.log(stderr);
           fs.appendFile("temps.txt", `file ${temp} \n`, () => {
             console.log("appended");
-            // temps.push(temp);
+            temps.push(temp);
           });
           cmd.run(
             `ffmpeg -f concat -i temps.txt -c copy -y "${songName}.mp3"`,
@@ -120,11 +120,11 @@ function download(res, req, videoID, songName) {
               console.log(err);
               console.log(data);
               console.log(stderr);
-              // temps.forEach((temp) => {
-              //   fs.unlink(temp, () => {
-              //     console.log("deleted ", temp);
-              //   });
-              // });
+              temps.forEach((temp) => {
+                fs.unlink(temp, () => {
+                  console.log("deleted ", temp);
+                });
+              });
               fs.unlink("temps.txt", () => {
                 console.log("deleted txt");
               });
@@ -141,11 +141,11 @@ function download(res, req, videoID, songName) {
             console.log(err);
             console.log(data);
             console.log(stderr);
-            // temps.forEach((temp) => {
-            //   fs.unlink(temp, () => {
-            //     console.log("deleted ", temp);
-            //   });
-            // });
+            temps.forEach((temp) => {
+              fs.unlink(temp, () => {
+                console.log("deleted ", temp);
+              });
+            });
             fs.unlink("temps.txt", () => {
               console.log("deleted txt");
             });
@@ -162,6 +162,9 @@ function forDownload(res, req, songName) {
   res.setHeader("Content-disposition", `attachment; filename=${songName}.mp3`);
   res.setHeader("Content-type", "audio/mpeg");
   res.download(file);
+  setTimeout(() => {
+    fs.unlink(file, () => console.log(`${file} deleted`));
+  }, 5000);
 }
 
 function youtube_parser(url) {
