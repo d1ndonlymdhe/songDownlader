@@ -65,7 +65,8 @@ function download(res, req, videoID, songName) {
             console.log("file created");
           });
           newFunc(res, req, cutSections, 0, vidLength, 0, []);
-        });
+        })
+        .catch((err) => console.log(err));
       console.log("done");
     }
   });
